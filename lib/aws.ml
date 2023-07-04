@@ -80,7 +80,6 @@ module Xml = struct
     try Some (Ezxmlm.member tag xml) with Ezxmlm.Tag_not_found _ -> None
 
   let members tag xml = try Ezxmlm.members tag xml with Ezxmlm.Tag_not_found _ -> []
-
   let data_to_string = Ezxmlm.data_to_string
 
   let required nm a =
@@ -207,19 +206,13 @@ end
 
 module type Call = sig
   type input
-
   type output
-
   type error
 
   val signature_version : Request.signature_version
-
   val service : string
-
   val to_http : string -> string -> input -> Request.t
-
   val of_http : string -> [ `Ok of output | `Error of error Error.error_response ]
-
   val parse_error : int -> string -> error option
 end
 
@@ -231,11 +224,8 @@ module Time = struct
   module P = CalendarLib.Printer.Calendar
 
   let date_yymmdd = P.sprint "%Y%m%d"
-
   let date_time_iso8601 = P.sprint "%Y-%m-%dT%H:%M:%S"
-
   let date_time = P.sprint "%Y%m%dT%H%M%SZ"
-
   let now_utc () = C.(now () |> to_gmt)
 
   (* (tmcgilchrist) This function is expecting datetimes like
@@ -328,15 +318,10 @@ module BaseTypes = struct
     type t
 
     val to_json : t -> Json.t
-
     val of_json : Json.t -> t
-
     val to_query : t -> Query.t
-
     val parse : Ezxmlm.nodes -> t option
-
     val to_string : t -> string
-
     val of_string : string -> t
   end
 
@@ -350,11 +335,9 @@ module BaseTypes = struct
       | t -> raise (Json.Casting_error ("unit", t))
 
     let to_query () = List []
-
     let parse _ = Some () (* XXX(seliopou): Should never be used, maybe assert that? *)
 
     let to_string _ = raise (Failure "unit")
-
     let of_string _ = raise (Failure "unit")
   end
 
@@ -368,11 +351,8 @@ module BaseTypes = struct
       | t -> raise (Json.Casting_error ("string", t))
 
     let to_query s = Value (Some s)
-
     let parse s = Some (data_to_string s)
-
     let to_string s = s
-
     let of_string s = s
   end
 
@@ -429,7 +409,6 @@ module BaseTypes = struct
       | Some s -> ( try Some (int_of_string s) with Failure _ -> None)
 
     let to_string i = string_of_int i
-
     let of_string s = int_of_string s
   end
 
@@ -452,7 +431,6 @@ module BaseTypes = struct
       | Some s -> ( try Some (float_of_string s) with Failure _ -> None)
 
     let to_string f = string_of_float f
-
     let of_string s = float_of_string s
   end
 
@@ -462,9 +440,7 @@ module BaseTypes = struct
     type t = CalendarLib.Calendar.t
 
     let to_json c = `String (Time.format c)
-
     let of_json t = Time.parse (String.of_json t)
-
     let to_query c = Value (Some (Time.format c))
 
     let parse c =
@@ -473,7 +449,6 @@ module BaseTypes = struct
       | Some s -> ( try Some (Time.parse s) with Invalid_argument _ -> None)
 
     let to_string c = Time.format c
-
     let of_string s = Time.parse s
   end
 end
@@ -488,9 +463,7 @@ module Signing = struct
       | None -> Digestif.SHA256.digest_string str
 
     let sha256 ?key str = _sha256 ?key str |> Digestif.SHA256.to_raw_string
-
     let sha256_hex ?key str = _sha256 ?key str |> Digestif.SHA256.to_hex
-
     let sha256_base64 ?key str = Base64.encode_string @@ sha256 ?key str
   end
 
@@ -532,7 +505,7 @@ module Signing = struct
     let now = Time.now_utc () in
     let amzdate = Time.date_time now in
     let datestamp = Time.date_yymmdd now in
-    let canonical_uri = "/" in
+    let canonical_uri = Uri.path uri in
     let canonical_querystring = params in
     let payload_hash = Hash.sha256_hex "" in
     let token_header, sig_header =
