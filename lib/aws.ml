@@ -495,7 +495,14 @@ module Signing = struct
   (* NOTE(dbp 2015-01-13): This is a direct translation of reference implementation at:
    * http://docs.aws.amazon.com/general/latest/gr/sigv4-signed-request-examples.html
    *)
-  let sign_request ~access_key ~secret_key ?token ~service ~region (meth, uri, headers) =
+  let sign_request
+      ~access_key
+      ~secret_key
+      ?token
+      ?body
+      ~service
+      ~region
+      (meth, uri, headers) =
     let host = Util.of_option_exn (Endpoints.endpoint_of service region) in
     let params = encode_query (Uri.query uri) in
     let sign key msg = Hash.sha256 ~key msg in
@@ -507,7 +514,7 @@ module Signing = struct
     let datestamp = Time.date_yymmdd now in
     let canonical_uri = Uri.path uri in
     let canonical_querystring = params in
-    let payload_hash = Hash.sha256_hex "" in
+    let payload_hash = Hash.sha256_hex (Option.value ~default:"" body) in
     let token_header, sig_header =
       match token with
       | Some t ->
