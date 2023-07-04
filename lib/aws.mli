@@ -305,6 +305,7 @@ module Signing : sig
        access_key:string
     -> secret_key:string
     -> ?token:string
+    -> ?body: string
     -> service:string
     -> region:string
     -> Request.t
